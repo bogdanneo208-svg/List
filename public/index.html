@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>Список покупок • Общий доступ</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #f9f5f0;
+      --surface: #ffffff;
+      --card: #ffffff;
+      --text: #3e3640;
+      --text-secondary: #6b5e62;
+      --accent: #d9775e;
+      --accent-light: #fbe4db;
+      --border: #e7dcd3;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.03);
+      --danger: #c95b5b;
+      --danger-light: #fce8e8;
+      --success: #688f6b;
+      --input-bg: #fcf9f6;
+      --history-card: #fdf8f4;
+      --toggle-bg: #e7dcd3;
+      --ripple: rgba(217, 119, 94, 0.15);
+      --edit-bg: #f5efe8;
+      --toast-bg: #3e3640;
+      --toast-text: #ffffff;
+      --sync-color: #6b8f9b;
+    }
+
+    body.dark {
+      --bg: #2b2522;
+      --surface: #3b322e;
+      --card: #423833;
+      --text: #f0e7dd;
+      --text-secondary: #c4b5ab;
+      --accent: #f09b7a;
+      --accent-light: #4c3d36;
+      --border: #5c4b42;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0,0,0,0.2);
+      --danger: #e07b7b;
+      --danger-light: #4f3a3a;
+      --success: #7f9f82;
+      --input-bg: #4f4139;
+      --history-card: #3f3530;
+      --toggle-bg: #5c4b42;
+      --ripple: rgba(240, 155, 122, 0.2);
+      --edit-bg: #4a3e38;
+      --toast-bg: #f0e7dd;
+      --toast-text: #2b2522;
+      --sync-color: #8bb8c9;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s ease, color 0.3s ease;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 16px 12px 32px;
+      margin: 0;
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      position: relative;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    h1 {
+      font-size: 2.1rem;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--accent), #c28b6e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .sync-status {
+      font-size: 0.8rem;
+      color: var(--sync-color);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .theme-toggle {
+      background: var(--toggle-bg);
+      border: none;
+      border-radius: 40px;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.25s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .theme-toggle:active { transform: scale(0.96); }
+
+    .add-form {
+      background: var(--surface);
+      border-radius: 28px;
+      padding: 20px 18px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: background 0.3s;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .product-input {
+      flex: 2;
+      min-width: 140px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 14px 18px;
+      font-size: 1rem;
+      color: var(--text);
+      outline: none;
+      transition: 0.2s;
+    }
+    .product-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--ripple);
+    }
+
+    .quantity-input {
+      flex: 1;
+      min-width: 80px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 14px 12px;
+      font-size: 1rem;
+      color: var(--text);
+      outline: none;
+    }
+
+    .unit-select {
+      flex: 0.8;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 14px 8px;
+      font-size: 0.95rem;
+      color: var(--text);
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%236b5e62" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>');
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    .add-btn {
+      background: var(--accent);
+      border: none;
+      border-radius: 20px;
+      padding: 14px 22px;
+      font-weight: 600;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 6px 14px rgba(217, 119, 94, 0.35);
+      white-space: nowrap;
+    }
+    .add-btn:active { transform: scale(0.95); background: #c1684a; }
+
+    .list-card {
+      background: var(--surface);
+      border-radius: 28px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      transition: background 0.3s;
+    }
+
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .purchased-btn {
+      background: var(--success);
+      border: none;
+      border-radius: 20px;
+      padding: 10px 18px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+    }
+    .purchased-btn:active { transform: scale(0.96); }
+
+    .products-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .product-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card);
+      border-radius: 18px;
+      padding: 12px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      border: 1px solid var(--border);
+      transition: all 0.25s;
+      animation: slideIn 0.3s ease;
+      flex-wrap: wrap;
+      gap: 8px;
+      word-break: break-word;
+      min-width: 0;
+    }
+    @keyframes slideIn {
+      0% { opacity: 0; transform: translateY(-10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .product-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+    }
+    .product-name {
+      font-weight: 600;
+      font-size: 1.05rem;
+      word-break: break-word;
+    }
+    .product-qty-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--accent-light);
+      border-radius: 20px;
+      padding: 2px 4px;
+    }
+    .qty-btn {
+      background: transparent;
+      border: none;
+      color: var(--accent);
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 12px;
+      transition: 0.2s;
+      line-height: 1;
+    }
+    .qty-btn:active { background: var(--ripple); }
+    .qty-value {
+      font-weight: 600;
+      font-size: 0.9rem;
+      min-width: 30px;
+      text-align: center;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 8px;
+      transition: 0.2s;
+    }
+    .qty-value:active { background: var(--ripple); }
+    .product-unit {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .delete-btn {
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 12px;
+      transition: 0.2s;
+      flex-shrink: 0;
+    }
+    .delete-btn:active { background: var(--danger-light); }
+
+    .empty-message {
+      text-align: center;
+      color: var(--text-secondary);
+      padding: 24px;
+    }
+
+    .history-section {
+      background: var(--surface);
+      border-radius: 28px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .history-title {
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .history-card {
+      background: var(--history-card);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      transition: 0.2s;
+      overflow: hidden;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .history-summary {
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .history-date {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .arrow-icon {
+      transition: transform 0.25s;
+      font-size: 1.2rem;
+      display: inline-block;
+      pointer-events: none;
+    }
+    .history-card.open .arrow-icon {
+      transform: rotate(180deg);
+    }
+
+    .history-details {
+      display: none;
+      padding: 0 14px 14px;
+      border-top: 1px var(--border);
+      margin-top: 8px;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .history-card.open .history-details {
+      display: flex;
+    }
+
+    .history-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      background: var(--edit-bg);
+      padding: 8px 12px;
+      border-radius: 12px;
+      flex-wrap: wrap;
+      gap: 6px;
+      word-break: break-word;
+    }
+    .copy-single-btn {
+      background: var(--accent-light);
+      border: none;
+      border-radius: 10px;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: var(--text);
+      z-index: 2;
+      flex-shrink: 0;
+    }
+    .history-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      z-index: 2;
+    }
+    .copy-list-btn {
+      background: var(--accent);
+      border: none;
+      border-radius: 14px;
+      padding: 8px 16px;
+      color: white;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.85rem;
+      z-index: 2;
+    }
+    .delete-history-btn {
+      background: var(--danger-light);
+      border: none;
+      border-radius: 14px;
+      padding: 8px 12px;
+      color: var(--danger);
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      z-index: 2;
+    }
+    .delete-history-btn:active { background: var(--danger); color: white; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--toast-bg);
+      color: var(--toast-text);
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      z-index: 999;
+      animation: toastIn 0.3s ease, toastOut 0.3s ease 1.7s forwards;
+      pointer-events: none;
+      max-width: 90%;
+      text-align: center;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    @keyframes toastOut {
+      from { opacity: 1; }
+      to { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    }
+
+    @media (max-width: 400px) {
+      .input-row {
+        flex-direction: column;
+      }
+      .product-input, .quantity-input, .unit-select, .add-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="header">
+      <h1>🛒 Покупки</h1>
+      <div class="header-controls">
+        <span class="sync-status" id="syncStatus">🔄 Синхронизация...</span>
+        <button class="theme-toggle" id="themeToggle">
+          <span id="themeIcon">🌙</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="add-form">
+      <div class="input-row">
+        <input type="text" class="product-input" id="productName" placeholder="Название продукта" autocomplete="off">
+        <input type="number" class="quantity-input" id="productQty" placeholder="Кол-во" value="1" min="0.1" step="0.1">
+        <select class="unit-select" id="productUnit">
+          <option value="шт">шт</option>
+          <option value="кг">кг</option>
+        </select>
+        <button class="add-btn" id="addProductBtn">➕ Добавить</button>
+      </div>
+    </div>
+
+    <div class="list-card">
+      <div class="list-header">
+        <h3>📋 Текущий список</h3>
+        <button class="purchased-btn" id="markPurchasedBtn">✅ Куплено</button>
+      </div>
+      <div id="currentListContainer" class="products-list">
+        <div class="empty-message">Загрузка...</div>
+      </div>
+    </div>
+
+    <div class="history-section">
+      <div class="history-title">📦 Прошлые покупки</div>
+      <div id="historyContainer" class="history-list">
+        <div class="empty-message">Загрузка...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // API URL - автоматически определяется
+      const API_BASE = window.location.origin;
+      
+      let currentList = [];
+      let historyLists = [];
+      let isSaving = false;
+
+      const productNameInput = document.getElementById('productName');
+      const productQtyInput = document.getElementById('productQty');
+      const productUnitSelect = document.getElementById('productUnit');
+      const addBtn = document.getElementById('addProductBtn');
+      const markPurchasedBtn = document.getElementById('markPurchasedBtn');
+      const currentContainer = document.getElementById('currentListContainer');
+      const historyContainer = document.getElementById('historyContainer');
+      const themeToggle = document.getElementById('themeToggle');
+      const themeIcon = document.getElementById('themeIcon');
+      const syncStatus = document.getElementById('syncStatus');
+
+      // Функция для API запросов
+      async function apiCall(method, endpoint, body = null) {
+        try {
+          const options = {
+            method: method,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          };
+          if (body) {
+            options.body = JSON.stringify(body);
+          }
+          
+          const response = await fetch(`${API_BASE}${endpoint}`, options);
+          if (!response.ok) throw new Error('Network error');
+          return await response.json();
+        } catch (error) {
+          console.error('API Error:', error);
+          showToast('Ошибка соединения с сервером');
+          updateSyncStatus('❌ Ошибка');
+          return null;
+        }
+      }
+
+      // Загрузка данных с сервера
+      async function loadFromServer() {
+        updateSyncStatus('🔄 Загрузка...');
+        const result = await apiCall('GET', '/api/data');
+        if (result) {
+          currentList = result.currentList || [];
+          historyLists = result.historyLists || [];
+          updateSyncStatus('✓ Синхронизировано');
+          renderCurrentList();
+          renderHistory();
+        }
+      }
+
+      // Сохранение всех данных на сервер
+      async function saveToServer() {
+        if (isSaving) return;
+        isSaving = true;
+        updateSyncStatus('💾 Сохранение...');
+        
+        const result = await apiCall('POST', '/api/save-all', {
+          currentList,
+          historyLists
+        });
+        
+        if (result && result.success) {
+          updateSyncStatus('✓ Сохранено');
+        }
+        
+        isSaving = false;
+      }
+
+      function updateSyncStatus(message) {
+        if (syncStatus) {
+          syncStatus.textContent = message;
+        }
+      }
+
+      function showToast(message) {
+        const existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2100);
+      }
+
+      function applyTheme(dark) {
+        if (dark) {
+          document.body.classList.add('dark');
+          themeIcon.textContent = '☀️';
+        } else {
+          document.body.classList.remove('dark');
+          themeIcon.textContent = '🌙';
+        }
+        localStorage.setItem('theme', dark ? 'dark' : 'light');
+      }
+
+      const savedTheme = localStorage.getItem('theme');
+      applyTheme(savedTheme === 'dark');
+      
+      themeToggle.addEventListener('click', () => {
+        applyTheme(!document.body.classList.contains('dark'));
+      });
+
+      function escapeHtml(text) {
+        return String(text).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+      }
+
+      function renderCurrentList() {
+        if (!currentContainer) return;
+        if (currentList.length === 0) {
+          currentContainer.innerHTML = '<div class="empty-message">✨ Список пуст. Добавьте продукты.</div>';
+          return;
+        }
+        currentContainer.innerHTML = currentList.map(item => `
+          <div class="product-item" data-id="${item.id}">
+            <div class="product-info">
+              <span class="product-name">${escapeHtml(item.name)}</span>
+              <div class="product-qty-row">
+                <div class="qty-controls">
+                  <button class="qty-btn" data-action="decrease" data-id="${item.id}">−</button>
+                  <span class="qty-value" data-action="edit-qty" data-id="${item.id}">${item.quantity || 1}</span>
+                  <button class="qty-btn" data-action="increase" data-id="${item.id}">+</button>
+                </div>
+                <span class="product-unit">${item.unit || 'шт'}</span>
+              </div>
+            </div>
+            <button class="delete-btn" data-action="delete" data-id="${item.id}">✕</button>
+          </div>
+        `).join('');
+      }
+
+      function renderHistory() {
+        if (!historyContainer) return;
+        if (historyLists.length === 0) {
+          historyContainer.innerHTML = '<div class="empty-message">📭 История пуста</div>';
+          return;
+        }
+        historyContainer.innerHTML = historyLists.slice().reverse().map(list => {
+          const date = new Date(list.date);
+          const dateStr = date.toLocaleDateString('ru-RU', { day:'numeric', month:'long', year:'numeric' });
+          const timeStr = date.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+          return `
+            <div class="history-card" data-history-id="${list.id}">
+              <div class="history-summary" data-action="toggle-history">
+                <span class="history-date">📅 ${dateStr} в ${timeStr} <span class="arrow-icon">▼</span></span>
+                <div class="history-actions">
+                  <button class="copy-list-btn" data-action="copy-list" data-id="${list.id}">📋</button>
+                  <button class="delete-history-btn" data-action="delete-history" data-id="${list.id}">🗑️</button>
+                </div>
+              </div>
+              <div class="history-details">
+                ${list.items.map((item, idx) => `
+                  <div class="history-item-row">
+                    <span>${escapeHtml(item.name)} – ${item.quantity || 1} ${item.unit || 'шт'}</span>
+                    <button class="copy-single-btn" data-action="copy-single" data-history-id="${list.id}" data-item-index="${idx}">📋 Копировать</button>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      async function addProduct() {
+        const name = productNameInput.value.trim();
+        if (!name) {
+          showToast('Введите название продукта');
+          return;
+        }
+        let qty = parseFloat(productQtyInput.value);
+        if (isNaN(qty) || qty <= 0) qty = 1;
+        const unit = productUnitSelect.value;
+        currentList.push({ id: Date.now() + Math.random().toString(36), name, quantity: qty, unit });
+        renderCurrentList();
+        await saveToServer();
+        productNameInput.value = '';
+        productQtyInput.value = '1';
+        productUnitSelect.value = 'шт';
+        productNameInput.focus();
+        showToast(`"${name}" добавлен`);
+      }
+
+      async function deleteProduct(id) {
+        const item = currentList.find(i => i.id == id);
+        currentList = currentList.filter(i => i.id != id);
+        renderCurrentList();
+        await saveToServer();
+        if (item) showToast(`"${item.name}" удалён`);
+      }
+
+      async function changeQuantity(id, delta) {
+        const item = currentList.find(i => i.id == id);
+        if (!item) return;
+        let newQty = (item.quantity || 1) + delta;
+        if (newQty < 0.1) newQty = 0.1;
+        item.quantity = Math.round(newQty * 10) / 10;
+        renderCurrentList();
+        await saveToServer();
+      }
+
+      function editQuantityManually(id) {
+        const item = currentList.find(i => i.id == id);
+        if (!item) return;
+        const newQty = prompt(`Количество для "${item.name}" (${item.unit})`, item.quantity);
+        if (newQty === null) return;
+        const parsed = parseFloat(newQty);
+        if (isNaN(parsed) || parsed <= 0) {
+          showToast('Введите положительное число');
+          return;
+        }
+        item.quantity = parsed;
+        renderCurrentList();
+        saveToServer();
+        showToast(`Количество обновлено`);
+      }
+
+      async function markAsPurchased() {
+        if (currentList.length === 0) {
+          showToast('Список пуст');
+          return;
+        }
+        historyLists.push({ id: Date.now(), date: new Date().toISOString(), items: JSON.parse(JSON.stringify(currentList)) });
+        currentList = [];
+        renderCurrentList();
+        renderHistory();
+        await saveToServer();
+        showToast('Покупки сохранены в историю');
+      }
+
+      async function copyFullList(historyId) {
+        const found = historyLists.find(h => h.id == historyId);
+        if (!found) return;
+        const copies = found.items.map(item => ({ ...item, id: Date.now() + Math.random().toString(36) }));
+        currentList = [...currentList, ...copies];
+        renderCurrentList();
+        await saveToServer();
+        showToast('Список скопирован в текущий');
+      }
+
+      async function copySingleItem(historyId, itemIndex) {
+        const found = historyLists.find(h => h.id == historyId);
+        if (!found || !found.items[itemIndex]) return;
+        const original = found.items[itemIndex];
+        currentList.push({ ...original, id: Date.now() + Math.random().toString(36) });
+        renderCurrentList();
+        await saveToServer();
+        showToast(`"${original.name}" добавлен в список`);
+      }
+
+      async function deleteHistoryList(historyId) {
+        historyLists = historyLists.filter(h => h.id != historyId);
+        renderHistory();
+        await saveToServer();
+        showToast('Список удалён из истории');
+      }
+
+      function toggleHistoryCard(card) {
+        card.classList.toggle('open');
+      }
+
+      // Делегирование событий
+      currentContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        const span = e.target.closest('span');
+        
+        if (btn) {
+          const action = btn.dataset.action;
+          const id = btn.dataset.id;
+          if (action === 'delete') deleteProduct(id);
+          if (action === 'increase') changeQuantity(id, 1);
+          if (action === 'decrease') changeQuantity(id, -1);
+          return;
+        }
+        
+        if (span && span.dataset.action === 'edit-qty') {
+          editQuantityManually(span.dataset.id);
+        }
+      });
+
+      historyContainer.addEventListener('click', (e) => {
+        const target = e.target;
+        const button = target.closest('button');
+        
+        if (button) {
+          const action = button.dataset.action;
+          
+          if (action === 'copy-list') {
+            e.stopPropagation();
+            copyFullList(button.dataset.id);
+            return;
+          }
+          
+          if (action === 'delete-history') {
+            e.stopPropagation();
+            deleteHistoryList(button.dataset.id);
+            return;
+          }
+          
+          if (action === 'copy-single') {
+            e.stopPropagation();
+            copySingleItem(button.dataset.historyId, parseInt(button.dataset.itemIndex));
+            return;
+          }
+        }
+
+        const summary = target.closest('.history-summary');
+        if (summary && summary.dataset.action === 'toggle-history') {
+          const card = summary.closest('.history-card');
+          if (card) {
+            toggleHistoryCard(card);
+          }
+        }
+      });
+
+      addBtn.addEventListener('click', addProduct);
+      productNameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addProduct();
+      });
+      markPurchasedBtn.addEventListener('click', markAsPurchased);
+
+      // Автосохранение при уходе со страницы
+      window.addEventListener('beforeunload', () => {
+        saveToServer();
+      });
+
+      // Периодическая синхронизация
+      setInterval(() => {
+        saveToServer();
+      }, 30000);
+
+      // Загрузка данных при старте
+      loadFromServer();
+    })();
+  </script>
+</body>
+</html>
