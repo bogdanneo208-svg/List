@@ -5,52 +5,57 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DATA_FILE = path.join(__dirname, 'data.json');
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+// Загрузка данных из переменной окружения
 function loadData() {
     try {
-        if (fs.existsSync(DATA_FILE)) {
-            const rawData = fs.readFileSync(DATA_FILE, 'utf8');
-            return JSON.parse(rawData);
+        const savedData = process.env.SAVED_DATA;
+        if (savedData && savedData !== 'empty') {
+            console.log('Загружаю сохранённые данные...');
+            return JSON.parse(savedData);
         }
     } catch (error) {
-        console.error('Ошибка загрузки:', error);
+        console.error('Ошибка загрузки:', error.message);
     }
     return { currentList: [], historyLists: [] };
 }
 
-function saveData(data) {
-    try {
-        fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
-        return true;
-    } catch (error) {
-        console.error('Ошибка сохранения:', error);
-        return false;
-    }
+// Сохранение данных (просто логируем в консоль)
+function saveDataToLog(data) {
+    console.log('='.repeat(50));
+    console.log('📋 ДАННЫЕ ДЛЯ СОХРАНЕНИЯ (скопируй это в Environment Variables):');
+    console.log('Ключ: SAVED_DATA');
+    console.log('Значение:', JSON.stringify(data));
+    console.log('='.repeat(50));
 }
 
+// Инициализация
+let DATA = loadData();
+console.log(`Загружено: ${DATA.currentList.length} товаров, ${DATA.historyLists.length} записей в истории`);
+
 app.get('/api/data', (req, res) => {
-    res.json(loadData());
+    res.json(DATA);
 });
 
 app.post('/api/save-all', (req, res) => {
     const { currentList, historyLists } = req.body;
-    const data = {
+    
+    DATA = {
         currentList: currentList || [],
         historyLists: historyLists || []
     };
     
-    if (saveData(data)) {
-        res.json({ success: true, data });
-    } else {
-        res.status(500).json({ success: false, message: 'Ошибка' });
-    }
+    // Выводим в консоль для копирования
+    saveDataToLog(DATA);
+    
+    res.json({ success: true, data: DATA });
 });
 
 app.listen(PORT, () => {
-    console.log(`Сервер запущен: http://localhost:${PORT}`);
+    console.log(`✅ Сервер запущен: http://localhost:${PORT}`);
+    console.log(`📦 Товаров в списке: ${DATA.currentList.length}`);
 });
