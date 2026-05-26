@@ -599,16 +599,25 @@
       }
 
       // Загрузка данных с сервера
-      async function loadFromServer() {
-        updateSyncStatus('🔄 Загрузка...');
-        const result = await apiCall('GET', '/api/data');
-        if (result) {
-          currentList = result.currentList || [];
-          historyLists = result.historyLists || [];
-          updateSyncStatus('✓ Синхронизировано');
-          renderCurrentList();
-          renderHistory();
-        }
+     // Загрузка данных с сервера
+async function loadFromServer() {
+    updateSyncStatus('🔄 Загрузка...');
+    const result = await apiCall('GET', '/api/data');
+    if (result) {
+        // ВАЖНО: Всегда обновляем оба списка
+        currentList = result.currentList || [];
+        historyLists = result.historyLists || [];
+        
+        console.log('📥 Загружено с сервера:', {
+            товаров: currentList.length,
+            истории: historyLists.length
+        });
+        
+        updateSyncStatus('✓ Синхронизировано');
+        renderCurrentList();
+        renderHistory();
+    }
+}
       }
 
       // Сохранение всех данных на сервер
