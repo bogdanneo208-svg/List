@@ -6,12 +6,11 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Подключение к Supabase
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error('❌ Ошибка: SUPABASE_URL и SUPABASE_KEY должны быть указаны в переменных окружения Render');
+  console.error('❌ SUPABASE_URL и SUPABASE_KEY не найдены');
   process.exit(1);
 }
 
@@ -21,76 +20,119 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Получение текущего списка
 app.get('/api/data', async (req, res) => {
   try {
-    // Получаем текущий список
+    console.log('📥 Запрос данных...');
+    
     const { data: currentList, error: currentError } = await supabase
       .from('current_list')
       .select('*')
       .order('created_at', { ascending: true });
 
-    if (currentError) throw currentError;
+    if (currentError) {
+      console.error('❌ Ошибка current_list:', currentError);
+      throw currentError;
+    }
+    
+    console.log('📋 Текущий список из БД:', currentList?.length || 0, 'товаров');
 
-    // Получаем историю
     const { data: historyLists, error: historyError } = await supabase
       .from('history_lists')
       .select('*')
       .order('date', { ascending: false });
 
-    if (historyError) throw historyError;
+    if (historyError) {
+      console.error('❌ Ошибка history_lists:', historyError);
+      throw historyError;
+    }
+    
+    console.log('📦 История из БД:', historyLists?.length || 0, 'записей');
 
     res.json({
       currentList: currentList || [],
       historyLists: historyLists || []
     });
   } catch (error) {
-    console.error('Ошибка получения данных:', error);
+    console.error('❌ Ошибка получения:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Сохранение всех данных
 app.post('/api/save-all', async (req, res) => {
   const { currentList, historyLists } = req.body;
 
+  console.log('💾 Сохранение:');
+  console.log('  - Товаров:', currentList?.length || 0);
+  console.log('  - Истории:', historyLists?.length || 0);
+
   try {
-    // Очищаем текущий список и вставляем новый
-    await supabase.from('current_list').delete().neq('id', 0);
+    // Сохраняем текущий список
+    console.log('🔄 Очищаю current_list...');
+    const { error: deleteError } = await supabase
+      .from('current_list')
+      .delete()
+      .neq('id', '0');
+    
+    if (deleteError) {
+      console.error('❌ Ошибка очистки current_list:', deleteError);
+    }
 
     if (currentList && currentList.length > 0) {
       const items = currentList.map(item => ({
-        id: item.id,
+        id: String(item.id),
         name: item.name,
         quantity: item.quantity || 1,
         unit: item.unit || 'шт'
       }));
 
+      console.log('📝 Вставляю товары:', items);
+      
       const { error: insertError } = await supabase
         .from('current_list')
         .insert(items);
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('❌ Ошибка вставки current_list:', insertError);
+        throw insertError;
+      }
+      
+      console.log('✅ Товары сохранены');
+    } else {
+      console.log('📭 Текущий список пуст');
     }
 
-    // Очищаем историю и вставляем новую
-    await supabase.from('history_lists').delete().neq('id', 0);
+    // Сохраняем историю
+    console.log('🔄 Очищаю history_lists...');
+    const { error: historyDeleteError } = await supabase
+      .from('history_lists')
+      .delete()
+      .neq('id', '0');
+    
+    if (historyDeleteError) {
+      console.error('❌ Ошибка очистки history_lists:', historyDeleteError);
+    }
 
     if (historyLists && historyLists.length > 0) {
       const history = historyLists.map(item => ({
-        id: item.id,
+        id: String(item.id),
         date: item.date,
         items: item.items
       }));
 
+      console.log('📝 Вставляю историю...');
+      
       const { error: historyError } = await supabase
         .from('history_lists')
         .insert(history);
 
-      if (historyError) throw historyError;
+      if (historyError) {
+        console.error('❌ Ошибка вставки history_lists:', historyError);
+        throw historyError;
+      }
+      
+      console.log('✅ История сохранена');
     }
 
-    console.log('✅ Данные сохранены в Supabase');
     res.json({ success: true });
   } catch (error) {
     console.error('❌ Ошибка сохранения:', error);
