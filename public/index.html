@@ -573,7 +573,13 @@
       const themeToggle = document.getElementById('themeToggle');
       const themeIcon = document.getElementById('themeIcon');
       const syncStatus = document.getElementById('syncStatus');
+// Загружаем данные сразу при открытии страницы
+loadFromServer();
 
+// И проверяем каждые 10 секунд (вдруг другой пользователь что-то изменил)
+setInterval(() => {
+    loadFromServer();
+}, 10000);
       // Функция для API запросов
       async function apiCall(method, endpoint, body = null) {
         try {
